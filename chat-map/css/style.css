@@ -1,0 +1,88 @@
+/* 背景全体 */
+.form {
+    width: 360px;
+    height: 780px;
+    background-color: #8CABD8;
+}
+
+#login {
+    display: flex;
+    margin: auto;
+}
+
+#output {
+    height: 700px;
+    /* ▼スクロールする */
+    overflow-y: scroll;
+    background-color: #6993d3;
+}
+
+#output::-webkit-scrollbar {
+    width: 10px;
+}
+
+#output::-webkit-scrollbar-track {
+    background-color: #8CABD8;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+#output::-webkit-scrollbar-thumb {
+    background-color: #46556D;
+    border-radius: 6px;
+    border-right: 3px solid transparent;
+    border-left: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+
+.msg {
+    /* 上 | 右 | 下 | 左 */
+    margin: 50px 0 50px 0;
+}
+
+.icon_uname {
+    /* 上 | 右 | 下 | 左 */
+    margin: 0 0 0 5px;
+    display: flex;
+    color: #343E4D;
+}
+
+.balloon {
+    display: flex;
+    align-items: flex-end;
+    top: 25px;
+    margin: 0 0 55px 0;
+}
+
+.icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: skyblue;
+}
+
+.uname {
+    font-size: 0.7rem;
+    font-weight: bold;
+    /* 上 | 右 | 下 | 左 */
+    margin: 2px 0 0 5px;
+}
+
+.text {
+    width: 250px;
+    background-color: #FEFFFF;
+    border-radius: 20px;
+    word-wrap: break-word;
+    /* 上 | 右 | 下 | 左 */
+    margin: 0 0 0 30px;
+    padding: 10px 10px 10px 10px;
+
+}
+
+.time {
+    color: #46556D;
+    font-size: 0.5rem;
+    /* 上 | 右 | 下 | 左 */
+    margin: 0 0 0 3px;
+}

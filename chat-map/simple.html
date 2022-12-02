@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>simple</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- コンテンツ表示画面 -->
+    <div class="form">
+        <div id="output"></div>
+        <div>
+            名前：<span id="uname"></span>
+        </div>
+        <div>
+            <textarea id="text" cols="30" rows="1"></textarea>
+            <button id="send">送信</button>
+            <button id="send_map">地図を送信</button>
+        </div>
+    </div>
+    <!--/ コンテンツ表示画面 -->
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+    <!-- jQuery&GoogleMapsAPI -->
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+    <!--** 以下Firebase **-->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        // ##################################
+        // 必要なFirebaseライブラリを読み込み
+        // ##################################
+        // firebase-app.js を読み込んで　initializeApp　を使うことを宣言
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue, onChildAdded, remove, onChildRemoved } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+        // firebase-database.js(認証用)　を読み込んで　青文字を使うことを宣言
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js";
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // ##################################
+        // FirebaseConfig [ KEYを取得して設定！！ ] 
+        // ##################################
+        const firebaseConfig = {
+            
+        };
+
+        // Initialize Firebase
+        // 上のキーで接続しに行っている
+        const app = initializeApp(firebaseConfig);
+
+        // ##################################
+        // Firebase-RealtimeDatabase接続
+        // ##################################
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'chat-login');
+
+        // ##################################
+        // GoogleAuth用
+        // ##################################
+        const provider = new GoogleAuthProvider();
+        provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+        const auth = getAuth();
+
+        // ##################################
+        // Loginしていれば処理します
+        // ##################################
+        onAuthStateChanged(auth, (user) => {
+            if (user) {  //認証していればuserに値が入ってくる
+                const uid = user.uid;
+                // ユーザー情報取得できます
+                if (user !== null) {
+                    user.providerData.forEach((profile) => {
+                        // Login情報
+                        $("#uname").text(profile.displayName);
+                        // const uname = $("#uname").text();
+                        // console.log(uname, 'unameを表示');
+                        // $("#prof").attr("src", profile.photoURL);
+                        console.log("Sign-in provider: " + profile.providerId);
+                        console.log("Provider-specific UID: " + profile.uid);
+                        console.log("Email: " + profile.email);
+                        // console.log("Photo URL: " + profile.photoURL);
+                    });
+                    $("#status").fadeOut(500);
+                }
+
+                // ここに間の処理かく
+                // 送信
+                $("#send").on('click', function () {
+
+                    // クリックされた時間を取得
+                    let time_onclick = new Date();
+                    console.log(typeof time_onclick, 'timestampの型');
+                    console.log(time_onclick, 'timestampを表示');
+
+                    let time_number = time_onclick.getTime();  //時間を数値で取得
+                    console.log(typeof time_number, 'time_numberの型');
+                    console.log(time_number, 'time_numberを表示');
+
+                    // id="uname" に記入されてる値を取得
+                    // const uname = $("#uname")[0];
+                    const uname = $("#uname").text();
+                    console.log(uname, 'unameを表示');
+                    // const text = $("#text")[0];
+                    const text = $("#text").val();
+                    console.log(text, 'textを表示');
+                    // alert(uname + text + timestamp);  //取得確認
+
+                    // データの塊を作る
+                    // データの塊:msg key:uname text ダンボールの中:uname text
+                    // 作成したデータの塊を保存
+                    //  ここFirebaseの処理
+                    const msg = {
+                        timestamp: time_number,
+                        uid: uid,
+                        uname: uname,
+                        text: text,
+                    }
+
+                    // 保存のコード firebaseに送る準備
+                    //  ここFirebaseの処理
+                    const newPostRef = push(dbRef)
+                    //
+                    set(newPostRef, msg); //firebaseの登録できる場所に保存する
+
+                    // 送信後に入力欄を空に
+                    $('#uname').val("");
+                    $('#text').val("");
+
+                    //  そこにカーソルが当たる
+                    $('#text').focus();
+                    // この下は消さない
+                    console.log('送信処理完了');
+                });
+
+                //　受信処理を記述
+                onChildAdded(dbRef, function (data) {
+                    console.log('onChildAdded');
+                    //　ここから受信処理がはじまります
+
+                    //　登録データ取得
+                    const msg = data.val();
+                    console.log(msg, '取得したデータの塊　msg');
+                    const key = data.key;
+                    console.log(key, 'データの塊にアクセス　key');
+
+                    // タイムスタンプの表示
+                    console.log(typeof msg.timestamp, 'Firebaseからのtimestampの型');
+                    const timestamp = new Date(msg.timestamp);
+                    let hour = timestamp.getHours();
+                    let minute = timestamp.getMinutes();
+                    console.log(hour + ':' + minute);
+                    let time = hour + ':' + minute;
+                    console.log(time, 'timeの表示');
+
+
+                    // es6のテンプレートリテラル
+                    let h = `
+                        <div class="msg">
+                            <div class="icon_uname">
+                                <div class="icon"></div>
+                                <div class="uname">
+                                    ${msg.uname}
+                                </div>
+                            </div>
+                            <div class="balloon">
+                                <div class="text">
+                                    ${msg.text}
+                                </div>
+                                <div class="time">
+                                    ${time}
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    // htmlに埋め込む
+                    //  jqueryのおまじない
+                    $("#output").append(h);
+                });
+
+            }
+            else {
+                _redirect();  // User is signed out
+            }
+        });
+
+        // ##################################
+        // Login画面へリダイレクト（関数作成）
+        // ##################################
+        function _redirect() {
+            console.log('リダイレクトになる');
+            // location.href = "login.html";
+        }
+    // このあたりにかいていきます
+    </script>
+
+    <!-- bing mapのkeyを貼り付けました▼ -->
+    <script
+        src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap&key='
+        async defer></script>
+    <script src="js/BmapQuery.js"></script>
+    <script>
+        $("#send_map").on('click', function GetMap() {
+            // 現在地を取得
+            navigator.geolocation.getCurrentPosition(mapsInit, mapsError, set);
+            console.log('mapボタンがクリックされました');
+        });
+
+        //****************************************
+        //成功関数 位置情報の取得に成功したときの処理
+        //****************************************
+        let map;
+
+        function mapsInit(position) {
+            // es6のテンプレートリテラル
+            let h = `
+                <div class="new_map" style="width:250px;height:150px;">
+                 </div>
+                   `;
+            $("#output").append(h);
+
+            console.log(position, 'positionを取得');
+            //lat=緯度、lon=経度 を取得
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            //Map表示エリア
+            // Map初期化
+            map = new Bmap(".new_map");
+            // Map表示
+            map.startMap(lat, lon, "load", 15); //緯度　軽度　種類　大きさ1-20
+            //Pinを追加
+            let pin = map.pin(lat, lon, "#ff0000");  // ピンの色を変えることもできる
+            console.log(pin, 'pin表示');
+            //Infoboxを追加
+            // 私のお気に入りの場所
+            map.infobox(lat, lon, "現在地");
+            console.log(map, 'mapを表示');
+
+            $(".new_map").append(map);
+        };
+
+        //****************************************
+        //失敗関数
+        //****************************************
+        function mapsError(error) {
+            let e = "";
+            if (error.code == 1) { //1＝位置情報取得が許可されてない（ブラウザの設定）
+                e = "位置情報が許可されてません";
+            }
+            if (error.code == 2) { //2＝現在地を特定できない
+                e = "現在位置を特定できません";
+            }
+            if (error.code == 3) { //3＝位置情報を取得する前にタイムアウトになった場合
+                e = "位置情報を取得する前にタイムアウトになりました";
+            }
+            alert("エラー：" + e);
+        };
+
+        //****************************************
+        //オプション設定
+        //****************************************
+        const set = {
+            enableHighAccuracy: true, //より高精度な位置を求める
+            maximumAge: 20000, //最後の現在地情報取得が20秒以内であればその情報を再利用する設定
+            timeout: 10000 //10秒以内に現在地情報を取得できなければ、処理を終了
+        };
+
+    </script>
+
+    <!-- bodyの閉じタグの直前にjs読み込みする -->
+</body>
+</html>
